@@ -95,3 +95,52 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const supabase = await createClient();
+
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: 'Du måste vara inloggad' },
+                { status: 401 }
+            );
+        }
+
+        const { searchParams } = new URL(request.url);
+        const logId = searchParams.get('id');
+
+        if (!logId) {
+            return NextResponse.json(
+                { error: 'Inget log-ID angavs' },
+                { status: 400 }
+            );
+        }
+
+        // Delete the log (RLS ensures users can only delete their own)
+        const { error } = await supabase
+            .from('logs')
+            .delete()
+            .eq('id', logId)
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error('Delete log error:', error);
+            return NextResponse.json(
+                { error: 'Kunde inte radera vinet' },
+                { status: 500 }
+            );
+        }
+
+        return NextResponse.json({ success: true, deletedId: logId });
+    } catch (error) {
+        console.error('Delete log error:', error);
+        return NextResponse.json(
+            { error: 'Ett fel uppstod' },
+            { status: 500 }
+        );
+    }
+}
+

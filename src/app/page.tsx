@@ -293,7 +293,11 @@ export default function Home() {
         {/* Content */}
         {viewMode === 'cellar' ? (
           <section>
-            <WineList logs={logs} onSelect={handleSelectLog} />
+            <WineList
+              logs={logs}
+              onSelect={handleSelectLog}
+              onDelete={(logId) => setLogs(prev => prev.filter(l => l.id !== logId))}
+            />
           </section>
         ) : (
           <section className="space-y-4">
@@ -303,7 +307,14 @@ export default function Home() {
                 <h3 className="text-sm text-white/60 mb-3">
                   {searchResults.length} vin{searchResults.length !== 1 ? 'er' : ''} matchar
                 </h3>
-                <WineList logs={searchResults} onSelect={handleSelectLog} />
+                <WineList
+                  logs={searchResults}
+                  onSelect={handleSelectLog}
+                  onDelete={(logId) => {
+                    setSearchResults(prev => prev.filter(l => l.id !== logId));
+                    setLogs(prev => prev.filter(l => l.id !== logId));
+                  }}
+                />
               </div>
             )}
           </section>
