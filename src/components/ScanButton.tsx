@@ -24,13 +24,8 @@ export function ScanButton({ onScanComplete }: ScanButtonProps) {
         setIsScanning(true);
 
         try {
-            // Convert to base64
-            const reader = new FileReader();
-            const base64Promise = new Promise<string>((resolve) => {
-                reader.onload = (e) => resolve(e.target?.result as string);
-            });
-            reader.readAsDataURL(file);
-            const base64Image = await base64Promise;
+            // Convert to base64 via canvas (handles HEIC and ensures JPEG)
+            const base64Image = await convertToJpegBase64(file);
 
             // Call API
             const response = await fetch('/api/scan-wine', {
@@ -60,6 +55,39 @@ export function ScanButton({ onScanComplete }: ScanButtonProps) {
                 fileInputRef.current.value = '';
             }
         }
+    };
+
+    // Convert any image to JPEG base64 via canvas
+    const convertToJpegBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Limit size to prevent memory issues
+                const maxSize = 1600;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height && width > maxSize) {
+                    height = (height / width) * maxSize;
+                    width = maxSize;
+                } else if (height > maxSize) {
+                    width = (width / height) * maxSize;
+                    height = maxSize;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+
+                // Convert to JPEG base64
+                const base64 = canvas.toDataURL('image/jpeg', 0.85);
+                resolve(base64);
+            };
+            img.onerror = () => reject(new Error('Could not load image'));
+            img.src = URL.createObjectURL(file);
+        });
     };
 
     return (
