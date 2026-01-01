@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "VinLogg - Din digitala vinkällare",
   description: "Fotografera vinflaskor för att logga dem. Hitta rätt vin till maten.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/wine-icon-192.png",
+    apple: "/wine-icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
