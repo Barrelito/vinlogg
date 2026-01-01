@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2, Thermometer, Clock, Sparkles } from 'lucide-react';
+import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2, Thermometer, Clock, Sparkles, Users, Calendar } from 'lucide-react';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
 
 interface WineDetailModalProps {
@@ -16,6 +16,8 @@ interface WineDetailModalProps {
         rating?: number;
         location_name?: string;
         notes?: string;
+        companions?: string;
+        occasion?: string;
         manualWine?: {
             name: string;
             producer?: string;
@@ -55,6 +57,8 @@ export function WineDetailModal({
     const [rating, setRating] = useState(log?.rating || 0);
     const [location, setLocation] = useState(log?.location_name || '');
     const [notes, setNotes] = useState(log?.notes || '');
+    const [companions, setCompanions] = useState(log?.companions || '');
+    const [occasion, setOccasion] = useState(log?.occasion || '');
     const [isSaving, setIsSaving] = useState(false);
 
     // Manual entry fields - pre-fill from analysisResult or wine
@@ -78,6 +82,8 @@ export function WineDetailModal({
                 rating: rating || undefined,
                 location_name: location || undefined,
                 notes: notes || undefined,
+                companions: companions || undefined,
+                occasion: occasion || undefined,
                 manualWine: isManualEntry ? {
                     name: manualName,
                     producer: manualProducer || undefined,
@@ -299,6 +305,36 @@ export function WineDetailModal({
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
                             placeholder="T.ex. Stockholms Stadshus"
+                            className="w-full"
+                        />
+                    </div>
+
+                    {/* Companions */}
+                    <div>
+                        <label className="text-sm text-white/60 mb-1 block flex items-center gap-2">
+                            <Users className="w-4 h-4" />
+                            Med vem?
+                        </label>
+                        <input
+                            type="text"
+                            value={companions}
+                            onChange={(e) => setCompanions(e.target.value)}
+                            placeholder="T.ex. Anna, Erik"
+                            className="w-full"
+                        />
+                    </div>
+
+                    {/* Occasion */}
+                    <div>
+                        <label className="text-sm text-white/60 mb-1 block flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            Tillfälle
+                        </label>
+                        <input
+                            type="text"
+                            value={occasion}
+                            onChange={(e) => setOccasion(e.target.value)}
+                            placeholder="T.ex. Födelsedag, After Work"
                             className="w-full"
                         />
                     </div>

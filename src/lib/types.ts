@@ -37,6 +37,8 @@ export interface WineLog {
   longitude: number | null;
   date: string;
   notes: string | null;
+  companions: string | null;  // Who you drank with
+  occasion: string | null;    // The occasion (birthday, dinner, etc.)
   created_at: string;
   updated_at: string;
   wine?: Wine; // Joined data

@@ -67,6 +67,8 @@ export async function POST(request: NextRequest) {
             longitude: body.longitude || null,
             date: body.date || new Date().toISOString().split('T')[0],
             notes: body.notes || null,
+            companions: body.companions || null,
+            occasion: body.occasion || null,
         };
 
         const { data: log, error } = await supabase

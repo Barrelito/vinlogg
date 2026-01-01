@@ -108,3 +108,20 @@ BEGIN
         ALTER TABLE wines ADD COLUMN flavor_profile JSONB;
     END IF;
 END $$;
+
+-- =============================================
+-- PHASE 9: Companions and Occasion Fields
+-- Run this to add social context to wine logs
+-- =============================================
+DO $$
+BEGIN
+    -- Add companions column (comma-separated names or array)
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'logs' AND column_name = 'companions') THEN
+        ALTER TABLE logs ADD COLUMN companions TEXT;
+    END IF;
+
+    -- Add occasion column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'logs' AND column_name = 'occasion') THEN
+        ALTER TABLE logs ADD COLUMN occasion TEXT;
+    END IF;
+END $$;

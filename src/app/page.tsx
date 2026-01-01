@@ -33,6 +33,7 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [selectedLog, setSelectedLog] = useState<WineLog | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const [cellarSearch, setCellarSearch] = useState('');
 
   // Create Supabase client only after mounting
   const supabase = useMemo<SupabaseClient | null>(() => {
@@ -92,6 +93,19 @@ export default function Home() {
     }
   };
 
+  // Filter logs based on cellar search
+  const filteredLogs = useMemo(() => {
+    if (!cellarSearch.trim()) return logs;
+    const search = cellarSearch.toLowerCase();
+    return logs.filter(log =>
+      log.wine?.name?.toLowerCase().includes(search) ||
+      log.companions?.toLowerCase().includes(search) ||
+      log.occasion?.toLowerCase().includes(search) ||
+      log.location_name?.toLowerCase().includes(search) ||
+      log.wine?.region?.toLowerCase().includes(search)
+    );
+  }, [logs, cellarSearch]);
+
   const handleScanComplete = (result: ScanResult) => {
     setScanResult(result);
     setShowModal(true);
@@ -113,6 +127,8 @@ export default function Home() {
     rating?: number;
     location_name?: string;
     notes?: string;
+    companions?: string;
+    occasion?: string;
     manualWine?: {
       name: string;
       producer?: string;
@@ -174,6 +190,8 @@ export default function Home() {
           rating: data.rating,
           location_name: data.location_name,
           notes: data.notes,
+          companions: data.companions,
+          occasion: data.occasion,
           user_image_url: userImageUrl,
         }),
       });
@@ -309,9 +327,20 @@ export default function Home() {
 
         {/* Content */}
         {viewMode === 'cellar' ? (
-          <section>
+          <section className="space-y-4">
+            {/* Cellar search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <input
+                type="text"
+                value={cellarSearch}
+                onChange={(e) => setCellarSearch(e.target.value)}
+                placeholder="Sök på vin, person, plats, tillfälle..."
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm"
+              />
+            </div>
             <WineList
-              logs={logs}
+              logs={filteredLogs}
               onSelect={handleSelectLog}
               onDelete={(logId) => setLogs(prev => prev.filter(l => l.id !== logId))}
             />

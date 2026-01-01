@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Wine, Star, MapPin, Calendar, Trash2, Loader2 } from 'lucide-react';
+import { Wine, Star, MapPin, Calendar, Trash2, Loader2, Users } from 'lucide-react';
 import type { WineLog } from '@/lib/types';
 
 interface WineListProps {
@@ -115,6 +115,13 @@ export function WineList({ logs, onSelect, onDelete }: WineListProps) {
                                     <Calendar className="w-3.5 h-3.5" />
                                     <span>{new Date(log.date).toLocaleDateString('sv-SE')}</span>
                                 </div>
+
+                                {log.companions && (
+                                    <div className="flex items-center gap-1">
+                                        <Users className="w-3.5 h-3.5" />
+                                        <span className="truncate max-w-[80px]">{log.companions}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
