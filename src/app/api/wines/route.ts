@@ -27,6 +27,10 @@ export async function POST(request: NextRequest) {
             food_pairing_tags: body.food_pairing_tags || [],
             url_to_systembolaget: body.url_to_systembolaget || null,
             image_url: body.image_url || null,
+            description: body.description || null,
+            serving_temperature: body.serving_temperature || null,
+            storage_potential: body.storage_potential || null,
+            flavor_profile: body.flavor_profile || null,
         };
 
         // Check if wine already exists by article number

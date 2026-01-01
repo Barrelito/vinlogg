@@ -1,16 +1,17 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Wine, Search, User, LogIn } from 'lucide-react';
+import { Wine, Search, User, LogIn, TrendingUp } from 'lucide-react';
 import { ScanButton } from '@/components/ScanButton';
 import { WineList } from '@/components/WineList';
 import { FoodSearch } from '@/components/FoodSearch';
+import { StatsView } from '@/components/StatsView';
 import { WineDetailModal } from '@/components/WineDetailModal';
 import { createClient } from '@/lib/supabase/client';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-type ViewMode = 'cellar' | 'search';
+type ViewMode = 'cellar' | 'search' | 'stats';
 
 interface ScanResult {
   analysisResult: WineAnalysisResult;
@@ -117,6 +118,10 @@ export default function Home() {
       producer?: string;
       vintage?: number;
       region?: string;
+      description?: string | null;
+      serving_temperature?: string | null;
+      storage_potential?: string | null;
+      flavor_profile?: any;
     };
   }) => {
     try {
@@ -265,28 +270,40 @@ export default function Home() {
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode('cellar')}
-            className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all ${viewMode === 'cellar'
+            className={`flex-1 py-3 px-2 rounded-xl flex items-center justify-center gap-2 transition-all ${viewMode === 'cellar'
               ? 'bg-wine-red/30 text-wine-red-light'
               : 'bg-white/5 text-white/60 hover:bg-white/10'
               }`}
           >
             <Wine className="w-5 h-5" />
-            <span>Min Vinkällare</span>
+            <span className="hidden sm:inline">Vinkällare</span>
             {logs.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-wine-red/50 text-xs">
+              <span className="px-2 py-0.5 rounded-full bg-wine-red/50 text-xs">
                 {logs.length}
               </span>
             )}
           </button>
+
+          <button
+            onClick={() => setViewMode('stats')}
+            className={`flex-1 py-3 px-2 rounded-xl flex items-center justify-center gap-2 transition-all ${viewMode === 'stats'
+              ? 'bg-wine-red/30 text-wine-red-light'
+              : 'bg-white/5 text-white/60 hover:bg-white/10'
+              }`}
+          >
+            <TrendingUp className="w-5 h-5" />
+            <span className="hidden sm:inline">Statistik</span>
+          </button>
+
           <button
             onClick={() => setViewMode('search')}
-            className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all ${viewMode === 'search'
+            className={`flex-1 py-3 px-2 rounded-xl flex items-center justify-center gap-2 transition-all ${viewMode === 'search'
               ? 'bg-wine-red/30 text-wine-red-light'
               : 'bg-white/5 text-white/60 hover:bg-white/10'
               }`}
           >
             <Search className="w-5 h-5" />
-            <span>Vad äter du?</span>
+            <span className="hidden sm:inline">Mat & Vin</span>
           </button>
         </div>
 
@@ -298,6 +315,10 @@ export default function Home() {
               onSelect={handleSelectLog}
               onDelete={(logId) => setLogs(prev => prev.filter(l => l.id !== logId))}
             />
+          </section>
+        ) : viewMode === 'stats' ? (
+          <section>
+            <StatsView logs={logs} />
           </section>
         ) : (
           <section className="space-y-4">

@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import type { WineAnalysisResult } from './types';
 
 // Initialize OpenAI client lazily to avoid build-time errors
 let openai: OpenAI | null = null;
@@ -12,16 +13,8 @@ function getOpenAIClient(): OpenAI {
     return openai;
 }
 
-// Complete wine analysis result from AI
-export interface WineAnalysisResult {
-    name: string;
-    producer: string | null;
-    vintage: number | null;
-    region: string | null;
-    grapes: string[];
-    food_pairing_tags: string[];
-    description: string | null;
-}
+// Re-export type from types.ts to avoid circular deps or confusion
+export type { WineAnalysisResult };
 
 // Standard food pairing tags (Systembolaget-style)
 const VALID_FOOD_TAGS = [
@@ -37,7 +30,7 @@ export async function analyzeWineImage(base64Image: string): Promise<WineAnalysi
         messages: [
             {
                 role: 'system',
-                content: `You are a sommelier API. Analyze wine labels and return structured JSON data. Always respond with ONLY valid JSON, no markdown or explanations.`
+                content: `You are a world-class sommelier API. Analyze wine labels and return detailed structured JSON data. Always respond with ONLY valid JSON, no markdown or explanations.`
             },
             {
                 role: 'user',
@@ -53,13 +46,21 @@ export async function analyzeWineImage(base64Image: string): Promise<WineAnalysi
   "region": "Region/Country",
   "grapes": ["Shiraz", "Cabernet"],
   "food_pairing_tags": ["Nöt", "Lamm"],
-  "description": "A short 1-sentence description of the wine's likely taste profile"
+  "description": "A sophisticated 3-4 sentence expert description of the wine, mentioning key notes, style, and origin characteristics.",
+  "serving_temperature": "e.g. 16-18°C",
+  "storage_potential": "e.g. Drink now or keep for 5+ years",
+  "flavor_profile": {
+    "body": 4,        // 1 (Light) to 5 (Full)
+    "acidity": 3,     // 1 (Low) to 5 (High)
+    "tannins": 3,     // 1 (Low) to 5 (High) - 1 for whites usually
+    "fruitiness": 4   // 1 (Low) to 5 (High)
+  }
 }
 
 IMPORTANT for food_pairing_tags: Choose 1-3 tags STRICTLY from this list:
 ${VALID_FOOD_TAGS.join(', ')}
 
-If you cannot determine a field, set it to null (or empty array for arrays).`,
+If you cannot determine a field with certainty, infer it from the wine style/region logic (as a sommelier would). Set numerical fields to null if completely unknown.`,
                     },
                     {
                         type: 'image_url',
@@ -72,7 +73,7 @@ If you cannot determine a field, set it to null (or empty array for arrays).`,
                 ],
             },
         ],
-        max_tokens: 1000,
+        max_tokens: 1500,
     });
 
     const content = response.choices[0]?.message?.content || '{}';
@@ -104,6 +105,9 @@ If you cannot determine a field, set it to null (or empty array for arrays).`,
             grapes: Array.isArray(parsed.grapes) ? parsed.grapes : [],
             food_pairing_tags: foodTags,
             description: parsed.description || null,
+            serving_temperature: parsed.serving_temperature || null,
+            storage_potential: parsed.storage_potential || null,
+            flavor_profile: parsed.flavor_profile || null,
         };
     } catch (e) {
         console.error('Failed to parse OpenAI response:', e, content);
@@ -115,6 +119,9 @@ If you cannot determine a field, set it to null (or empty array for arrays).`,
             grapes: [],
             food_pairing_tags: [],
             description: null,
+            serving_temperature: null,
+            storage_potential: null,
+            flavor_profile: null,
         };
     }
 }

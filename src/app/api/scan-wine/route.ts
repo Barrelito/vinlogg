@@ -46,9 +46,13 @@ export async function POST(request: NextRequest) {
                             producer: analysisResult.producer,
                             vintage: analysisResult.vintage,
                             region: analysisResult.region,
-                            article_number: null, // No Systembolaget data
-                            price: null, // No Systembolaget data
+                            article_number: null,
+                            price: null,
                             food_pairing_tags: analysisResult.food_pairing_tags,
+                            description: analysisResult.description,
+                            serving_temperature: analysisResult.serving_temperature,
+                            storage_potential: analysisResult.storage_potential,
+                            flavor_profile: analysisResult.flavor_profile,
                             url_to_systembolaget: null,
                             image_url: null,
                         })

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2 } from 'lucide-react';
+import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2, Thermometer, Clock, Sparkles } from 'lucide-react';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
 
 interface WineDetailModalProps {
@@ -22,9 +22,26 @@ interface WineDetailModalProps {
             vintage?: number;
             region?: string;
             food_pairing_tags?: string[];
+            description?: string | null;
+            serving_temperature?: string | null;
+            storage_potential?: string | null;
+            flavor_profile?: any;
         };
     }) => void;
 }
+
+// Helper component for flavor bars
+const FlavorBar = ({ label, value }: { label: string; value: number }) => (
+    <div className="flex items-center gap-3 text-sm">
+        <span className="w-20 text-white/60">{label}</span>
+        <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+            <div
+                className="h-full bg-wine-red-light rounded-full transition-all duration-500"
+                style={{ width: `${(value / 5) * 100}%` }}
+            />
+        </div>
+    </div>
+);
 
 export function WineDetailModal({
     wine,
@@ -46,6 +63,12 @@ export function WineDetailModal({
     const [manualVintage, setManualVintage] = useState((analysisResult?.vintage || wine?.vintage)?.toString() || '');
     const [manualRegion, setManualRegion] = useState(analysisResult?.region || wine?.region || '');
 
+    // Extract detailed info from either analysis OR saved wine
+    const description = analysisResult?.description || wine?.description;
+    const servingTemp = analysisResult?.serving_temperature || wine?.serving_temperature;
+    const storage = analysisResult?.storage_potential || wine?.storage_potential;
+    const flavor = analysisResult?.flavor_profile || wine?.flavor_profile;
+
     const handleSave = async () => {
         setIsSaving(true);
         try {
@@ -59,6 +82,10 @@ export function WineDetailModal({
                     producer: manualProducer || undefined,
                     vintage: manualVintage ? parseInt(manualVintage) : undefined,
                     region: manualRegion || undefined,
+                    description: analysisResult?.description,
+                    serving_temperature: analysisResult?.serving_temperature,
+                    storage_potential: analysisResult?.storage_potential,
+                    flavor_profile: analysisResult?.flavor_profile,
                 } : undefined,
             });
         } finally {
@@ -147,39 +174,87 @@ export function WineDetailModal({
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-2">
-                            <h3 className="text-xl font-bold text-white">{wine?.name}</h3>
-                            {wine?.producer && (
-                                <p className="text-white/60">{wine.producer}</p>
-                            )}
-                            <div className="flex items-center gap-4 text-sm text-white/40">
-                                {wine?.vintage && <span>{wine.vintage}</span>}
-                                {wine?.region && <span>{wine.region}</span>}
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-bold text-white">{wine?.name}</h3>
+                                {wine?.producer && (
+                                    <p className="text-white/60">{wine.producer}</p>
+                                )}
+                                <div className="flex items-center gap-4 text-sm text-white/40">
+                                    {wine?.vintage && <span>{wine.vintage}</span>}
+                                    {wine?.region && <span>{wine.region}</span>}
+                                </div>
+                                {wine?.price && (
+                                    <p className="text-wine-red-light font-semibold">{wine.price} kr</p>
+                                )}
+                                {wine?.url_to_systembolaget && (
+                                    <a
+                                        href={wine.url_to_systembolaget}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 text-sm text-wine-red-light hover:text-wine-red transition-colors"
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                        Se på Systembolaget
+                                    </a>
+                                )}
+                                {wine?.food_pairing_tags && wine.food_pairing_tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        {wine.food_pairing_tags.map((tag) => (
+                                            <span
+                                                key={tag}
+                                                className="px-3 py-1 rounded-full bg-wine-red/20 text-wine-red-light text-xs"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            {wine?.price && (
-                                <p className="text-wine-red-light font-semibold">{wine.price} kr</p>
-                            )}
-                            {wine?.url_to_systembolaget && (
-                                <a
-                                    href={wine.url_to_systembolaget}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 text-sm text-wine-red-light hover:text-wine-red transition-colors"
-                                >
-                                    <ExternalLink className="w-4 h-4" />
-                                    Se på Systembolaget
-                                </a>
-                            )}
-                            {wine?.food_pairing_tags && wine.food_pairing_tags.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {wine.food_pairing_tags.map((tag) => (
-                                        <span
-                                            key={tag}
-                                            className="px-3 py-1 rounded-full bg-wine-red/20 text-wine-red-light text-xs"
-                                        >
-                                            {tag}
-                                        </span>
-                                    ))}
+
+                            {/* Advanced AI Insights */}
+                            {(description || flavor) && (
+                                <div className="bg-white/5 p-4 rounded-xl space-y-4">
+                                    <div className="flex items-center gap-2 text-wine-red-light font-medium">
+                                        <Sparkles className="w-4 h-4" />
+                                        <span>Sommelierens Analys</span>
+                                    </div>
+
+                                    {description && (
+                                        <p className="text-sm text-white/80 leading-relaxed italic">
+                                            "{description}"
+                                        </p>
+                                    )}
+
+                                    {flavor && (
+                                        <div className="space-y-2 pt-2 border-t border-white/10">
+                                            <FlavorBar label="Fyllighet" value={flavor.body} />
+                                            <FlavorBar label="Syra" value={flavor.acidity} />
+                                            <FlavorBar label="Strävhet" value={flavor.tannins} />
+                                            <FlavorBar label="Fruktighet" value={flavor.fruitiness} />
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/10">
+                                        {servingTemp && (
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-1.5 text-xs text-white/40">
+                                                    <Thermometer className="w-3.5 h-3.5" />
+                                                    <span>Temp</span>
+                                                </div>
+                                                <span className="text-sm text-white/80">{servingTemp}</span>
+                                            </div>
+                                        )}
+                                        {storage && (
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-1.5 text-xs text-white/40">
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                    <span>Lagring</span>
+                                                </div>
+                                                <span className="text-sm text-white/80">{storage}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>

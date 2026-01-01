@@ -1,3 +1,10 @@
+export interface FlavorProfile {
+  body: number; // 1-5
+  acidity: number; // 1-5
+  tannins: number; // 1-5
+  fruitiness: number; // 1-5
+}
+
 export interface Wine {
   id: string;
   name: string;
@@ -7,6 +14,12 @@ export interface Wine {
   article_number: string | null;
   price: number | null;
   food_pairing_tags: string[];
+  // New detailed fields
+  description: string | null;
+  serving_temperature: string | null;
+  storage_potential: string | null;
+  flavor_profile: FlavorProfile | null;
+
   url_to_systembolaget: string | null;
   image_url: string | null;
   created_at: string;
@@ -38,6 +51,9 @@ export interface WineAnalysisResult {
   grapes: string[];
   food_pairing_tags: string[];
   description: string | null;
+  serving_temperature: string | null;
+  storage_potential: string | null;
+  flavor_profile: FlavorProfile | null;
 }
 
 // Legacy type for backwards compatibility

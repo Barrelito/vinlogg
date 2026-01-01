@@ -68,16 +68,43 @@ CREATE POLICY "Users can delete own logs" ON logs
 -- =============================================
 -- Storage Bucket for Wine Images
 -- =============================================
-INSERT INTO storage.buckets (id, name, public) 
+INSERT INTO storage.buckets (id, name, public)
 VALUES ('wine-images', 'wine-images', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Policy: Public read access for wine images
-CREATE POLICY "Public Access" ON storage.objects 
+CREATE POLICY "Public Access" ON storage.objects
 FOR SELECT USING (bucket_id = 'wine-images');
 
 -- Policy: Only authenticated users can upload
-CREATE POLICY "Auth Upload" ON storage.objects 
+CREATE POLICY "Auth Upload" ON storage.objects
 FOR INSERT WITH CHECK (
   bucket_id = 'wine-images' AND auth.role() = 'authenticated'
 );
+
+-- =============================================
+-- PHASE 8: Advanced AI Fields Migration
+-- Run this section to add support for detailed AI analysis
+-- =============================================
+DO $$
+BEGIN
+    -- Add description column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'wines' AND column_name = 'description') THEN
+        ALTER TABLE wines ADD COLUMN description TEXT;
+    END IF;
+
+    -- Add serving_temperature column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'wines' AND column_name = 'serving_temperature') THEN
+        ALTER TABLE wines ADD COLUMN serving_temperature TEXT;
+    END IF;
+
+    -- Add storage_potential column
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'wines' AND column_name = 'storage_potential') THEN
+        ALTER TABLE wines ADD COLUMN storage_potential TEXT;
+    END IF;
+
+    -- Add flavor_profile column (JSONB for flexibility: body, acidity, tannins, fruitiness)
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'wines' AND column_name = 'flavor_profile') THEN
+        ALTER TABLE wines ADD COLUMN flavor_profile JSONB;
+    END IF;
+END $$;
