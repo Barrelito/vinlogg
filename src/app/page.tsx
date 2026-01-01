@@ -7,6 +7,7 @@ import { WineList } from '@/components/WineList';
 import { FoodSearch } from '@/components/FoodSearch';
 import { StatsView } from '@/components/StatsView';
 import { PartnerSettings } from '@/components/PartnerSettings';
+import { Onboarding } from '@/components/Onboarding';
 import { WineDetailModal } from '@/components/WineDetailModal';
 import { createClient } from '@/lib/supabase/client';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
@@ -404,6 +405,9 @@ export default function Home() {
         isOpen={showPartnerSettings}
         onClose={() => setShowPartnerSettings(false)}
       />
+
+      {/* First-time visitor onboarding */}
+      <Onboarding onComplete={() => { }} />
     </main>
   );
 }
