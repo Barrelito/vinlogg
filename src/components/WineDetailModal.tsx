@@ -68,6 +68,7 @@ export function WineDetailModal({
     const servingTemp = analysisResult?.serving_temperature || wine?.serving_temperature;
     const storage = analysisResult?.storage_potential || wine?.storage_potential;
     const flavor = analysisResult?.flavor_profile || wine?.flavor_profile;
+    const foodTags = analysisResult?.food_pairing_tags || wine?.food_pairing_tags || [];
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -198,16 +199,19 @@ export function WineDetailModal({
                                         Se på Systembolaget
                                     </a>
                                 )}
-                                {wine?.food_pairing_tags && wine.food_pairing_tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-3">
-                                        {wine.food_pairing_tags.map((tag) => (
-                                            <span
-                                                key={tag}
-                                                className="px-3 py-1 rounded-full bg-wine-red/20 text-wine-red-light text-xs"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
+                                {foodTags.length > 0 && (
+                                    <div className="mt-3">
+                                        <span className="text-xs text-white/40 block mb-1.5">Passar till:</span>
+                                        <div className="flex flex-wrap gap-2">
+                                            {foodTags.map((tag) => (
+                                                <span
+                                                    key={tag}
+                                                    className="px-3 py-1 rounded-full bg-wine-red/20 text-wine-red-light text-xs"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>

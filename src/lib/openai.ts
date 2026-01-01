@@ -30,7 +30,7 @@ export async function analyzeWineImage(base64Image: string): Promise<WineAnalysi
         messages: [
             {
                 role: 'system',
-                content: `You are a world-class sommelier API. Analyze wine labels and return detailed structured JSON data. Always respond with ONLY valid JSON, no markdown or explanations.`
+                content: `Du är en API för en världsledande sommelier. Analysera vinetiketter och returnera detaljerad strukturerad JSON-data PÅ SVENSKA. Svara ENDAST med giltig JSON, ingen markdown eller förklaringar.`
             },
             {
                 role: 'user',
@@ -59,6 +59,8 @@ export async function analyzeWineImage(base64Image: string): Promise<WineAnalysi
 
 IMPORTANT for food_pairing_tags: Choose 1-3 tags STRICTLY from this list:
 ${VALID_FOOD_TAGS.join(', ')}
+
+ALL TEXT FIELDS (description, storage_potential) MUST BE IN SWEDISH.
 
 If you cannot determine a field with certainty, infer it from the wine style/region logic (as a sommelier would). Set numerical fields to null if completely unknown.`,
                     },
