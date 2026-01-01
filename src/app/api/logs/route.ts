@@ -15,13 +15,29 @@ export async function GET() {
             );
         }
 
+        // Get partner user IDs (both directions)
+        const { data: partnerConnections } = await supabase
+            .from('partners')
+            .select('user_id, partner_user_id')
+            .or(`user_id.eq.${user.id},partner_user_id.eq.${user.id}`)
+            .eq('status', 'accepted');
+
+        // Build list of user IDs to fetch logs for
+        const userIds = [user.id];
+        if (partnerConnections) {
+            partnerConnections.forEach(p => {
+                if (p.user_id !== user.id && p.user_id) userIds.push(p.user_id);
+                if (p.partner_user_id !== user.id && p.partner_user_id) userIds.push(p.partner_user_id);
+            });
+        }
+
         const { data: logs, error } = await supabase
             .from('logs')
             .select(`
         *,
         wine:wines(*)
       `)
-            .eq('user_id', user.id)
+            .in('user_id', userIds)
             .order('date', { ascending: false });
 
         if (error) {

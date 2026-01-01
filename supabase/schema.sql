@@ -125,3 +125,49 @@ BEGIN
         ALTER TABLE logs ADD COLUMN occasion TEXT;
     END IF;
 END $$;
+
+-- =============================================
+-- PHASE 10: Shared Wine Cellar (Partners)
+-- Allows two users to share their wine logs
+-- =============================================
+CREATE TABLE IF NOT EXISTS partners (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    partner_email TEXT NOT NULL,
+    partner_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'accepted'
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, partner_email)
+);
+
+-- Index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_partners_user_id ON partners(user_id);
+CREATE INDEX IF NOT EXISTS idx_partners_partner_user_id ON partners(partner_user_id);
+CREATE INDEX IF NOT EXISTS idx_partners_partner_email ON partners(partner_email);
+
+-- RLS policies for partners table
+ALTER TABLE partners ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'partners' AND policyname = 'Users can view their own partner connections') THEN
+        CREATE POLICY "Users can view their own partner connections" ON partners
+            FOR SELECT USING (auth.uid() = user_id OR auth.uid() = partner_user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'partners' AND policyname = 'Users can create partner invites') THEN
+        CREATE POLICY "Users can create partner invites" ON partners
+            FOR INSERT WITH CHECK (auth.uid() = user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'partners' AND policyname = 'Users can update partner connections they are part of') THEN
+        CREATE POLICY "Users can update partner connections they are part of" ON partners
+            FOR UPDATE USING (auth.uid() = user_id OR auth.uid() = partner_user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'partners' AND policyname = 'Users can delete their own partner connections') THEN
+        CREATE POLICY "Users can delete their own partner connections" ON partners
+            FOR DELETE USING (auth.uid() = user_id);
+    END IF;
+END $$;

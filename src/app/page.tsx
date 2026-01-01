@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Wine, Search, User, LogIn, TrendingUp } from 'lucide-react';
+import { Wine, Search, User, LogIn, TrendingUp, Users } from 'lucide-react';
 import { ScanButton } from '@/components/ScanButton';
 import { WineList } from '@/components/WineList';
 import { FoodSearch } from '@/components/FoodSearch';
 import { StatsView } from '@/components/StatsView';
+import { PartnerSettings } from '@/components/PartnerSettings';
 import { WineDetailModal } from '@/components/WineDetailModal';
 import { createClient } from '@/lib/supabase/client';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
@@ -34,6 +35,7 @@ export default function Home() {
   const [selectedLog, setSelectedLog] = useState<WineLog | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [cellarSearch, setCellarSearch] = useState('');
+  const [showPartnerSettings, setShowPartnerSettings] = useState(false);
 
   // Create Supabase client only after mounting
   const supabase = useMemo<SupabaseClient | null>(() => {
@@ -259,13 +261,22 @@ export default function Home() {
           </div>
 
           {user ? (
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
-            >
-              <User className="w-5 h-5 text-white/60" />
-              <span className="text-sm text-white/60">Logga ut</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowPartnerSettings(true)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                title="Delad Vinkällare"
+              >
+                <Users className="w-5 h-5 text-white/60" />
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <User className="w-5 h-5 text-white/60" />
+                <span className="text-sm text-white/60 hidden sm:inline">Logga ut</span>
+              </button>
+            </div>
           ) : (
             <button
               onClick={handleSignIn}
@@ -387,6 +398,12 @@ export default function Home() {
           onSave={handleSaveLog}
         />
       )}
+
+      {/* Partner Settings Modal */}
+      <PartnerSettings
+        isOpen={showPartnerSettings}
+        onClose={() => setShowPartnerSettings(false)}
+      />
     </main>
   );
 }
