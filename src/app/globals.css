@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f0f0f;
+  --foreground: #f5f5f5;
+  --primary: #7c3aed;
+  --primary-light: #a78bfa;
+  --secondary: #1e1e2e;
+  --accent: #dc2626;
+  --wine-red: #722f37;
+  --wine-red-light: #9b4d54;
+  --success: #22c55e;
+  --warning: #f59e0b;
 }
 
 @theme inline {
@@ -12,15 +20,113 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+body {
+  background: linear-gradient(180deg, #0f0f0f 0%, #1a0a0a 100%);
+  color: var(--foreground);
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--wine-red);
+  border-radius: 4px;
+}
+
+/* Glass morphism cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+}
+
+/* Wine gradient button */
+.wine-button {
+  background: linear-gradient(135deg, var(--wine-red) 0%, #4a1c22 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.wine-button:hover {
+  background: linear-gradient(135deg, var(--wine-red-light) 0%, var(--wine-red) 100%);
+  transform: scale(1.02);
+  box-shadow: 0 10px 40px rgba(114, 47, 55, 0.4);
+}
+
+.wine-button:active {
+  transform: scale(0.98);
+}
+
+/* Rating stars */
+.star-rating {
+  color: #fbbf24;
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(114, 47, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(114, 47, 55, 0.6);
   }
 }
 
-body {
-  background: var(--background);
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slide-up 0.4s ease-out forwards;
+}
+
+/* Mobile-first input styling */
+input, textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 16px;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px; /* Prevents zoom on iOS */
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--wine-red);
+  box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.2);
+}
+
+/* Loading spinner */
+.spinner {
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--wine-red);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
