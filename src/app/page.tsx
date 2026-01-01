@@ -18,6 +18,8 @@ interface ScanResult {
     producer: string | null;
     vintage: number | null;
     region: string | null;
+    grapeVariety: string | null;
+    suggestedFoodPairings: string[];
   };
   wine: WineType | null;
   foundOnSystembolaget: boolean;
@@ -320,6 +322,7 @@ export default function Home() {
         <WineDetailModal
           wine={scanResult?.wine || selectedLog?.wine}
           log={selectedLog}
+          visionResult={scanResult?.visionResult}
           imageBase64={scanResult?.imageBase64}
           isManualEntry={scanResult !== null && !scanResult.foundOnSystembolaget}
           onClose={() => {

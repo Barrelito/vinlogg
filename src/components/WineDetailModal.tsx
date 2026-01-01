@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Star, MapPin, Calendar, ExternalLink, Wine, Save, Loader2 } from 'lucide-react';
-import type { Wine as WineType, WineLog } from '@/lib/types';
+import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2 } from 'lucide-react';
+import type { Wine as WineType, WineLog, VisionAnalysisResult } from '@/lib/types';
 
 interface WineDetailModalProps {
     wine?: WineType | null;
     log?: WineLog | null;
+    visionResult?: VisionAnalysisResult | null;
     imageBase64?: string;
     isManualEntry?: boolean;
     onClose: () => void;
@@ -20,6 +21,7 @@ interface WineDetailModalProps {
             producer?: string;
             vintage?: number;
             region?: string;
+            food_pairing_tags?: string[];
         };
     }) => void;
 }
@@ -27,6 +29,7 @@ interface WineDetailModalProps {
 export function WineDetailModal({
     wine,
     log,
+    visionResult,
     imageBase64,
     isManualEntry = false,
     onClose,
@@ -37,11 +40,11 @@ export function WineDetailModal({
     const [notes, setNotes] = useState(log?.notes || '');
     const [isSaving, setIsSaving] = useState(false);
 
-    // Manual entry fields
-    const [manualName, setManualName] = useState(wine?.name || '');
-    const [manualProducer, setManualProducer] = useState(wine?.producer || '');
-    const [manualVintage, setManualVintage] = useState(wine?.vintage?.toString() || '');
-    const [manualRegion, setManualRegion] = useState(wine?.region || '');
+    // Manual entry fields - pre-fill from visionResult or wine
+    const [manualName, setManualName] = useState(visionResult?.name || wine?.name || '');
+    const [manualProducer, setManualProducer] = useState(visionResult?.producer || wine?.producer || '');
+    const [manualVintage, setManualVintage] = useState((visionResult?.vintage || wine?.vintage)?.toString() || '');
+    const [manualRegion, setManualRegion] = useState(visionResult?.region || wine?.region || '');
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -197,8 +200,8 @@ export function WineDetailModal({
                                 >
                                     <Star
                                         className={`w-8 h-8 ${value <= rating
-                                                ? 'text-yellow-400 fill-yellow-400'
-                                                : 'text-white/20'
+                                            ? 'text-yellow-400 fill-yellow-400'
+                                            : 'text-white/20'
                                             }`}
                                     />
                                 </button>

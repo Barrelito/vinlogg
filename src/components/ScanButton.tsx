@@ -2,16 +2,11 @@
 
 import { useRef, useState } from 'react';
 import { Camera, Upload, Loader2 } from 'lucide-react';
-import type { Wine } from '@/lib/types';
+import type { Wine, VisionAnalysisResult } from '@/lib/types';
 
 interface ScanButtonProps {
     onScanComplete: (result: {
-        visionResult: {
-            name: string;
-            producer: string | null;
-            vintage: number | null;
-            region: string | null;
-        };
+        visionResult: VisionAnalysisResult;
         wine: Wine | null;
         foundOnSystembolaget: boolean;
         imageBase64: string;
