@@ -128,11 +128,11 @@ export function WineList({ logs, onSelect, onDelete }: WineListProps) {
                         )}
                     </button>
 
-                    {/* Delete button */}
+                    {/* Delete button - always visible on mobile, hover on desktop */}
                     <button
                         onClick={(e) => handleDelete(e, log.id)}
                         disabled={deletingId === log.id}
-                        className="p-2 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
+                        className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
                         title="Radera"
                     >
                         {deletingId === log.id ? (
