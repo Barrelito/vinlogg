@@ -34,6 +34,8 @@ export interface VisionAnalysisResult {
   producer: string | null;
   vintage: number | null;
   region: string | null;
+  grapeVariety: string | null;
+  suggestedFoodPairings: string[];
 }
 
 export interface SystembolagetProduct {

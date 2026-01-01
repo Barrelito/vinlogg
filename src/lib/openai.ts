@@ -24,16 +24,23 @@ export async function analyzeWineImage(base64Image: string): Promise<VisionAnaly
                 content: [
                     {
                         type: 'text',
-                        text: `Analysera denna vinflaska och extrahera följande information. Svara ENDAST med JSON, inget annat.
+                        text: `Du är en vinexpert. Analysera denna bild av en vinflaska och extrahera information från etiketten.
+
+Svara ENDAST med JSON i detta format, inget annat:
 
 {
-  "name": "Vinets fullständiga namn",
-  "producer": "Producent/vingård",
+  "name": "Vinets fullständiga namn från etiketten",
+  "producer": "Producent eller vingårdens namn",
   "vintage": 2020,
-  "region": "Region/land"
+  "region": "Region och/eller land",
+  "grapeVariety": "Druvsorter om synligt",
+  "suggestedFoodPairings": ["Nötkött", "Lamm"]
 }
 
-Om du inte kan avgöra ett fält, sätt det till null.`,
+För suggestedFoodPairings, välj från dessa Systembolaget-standardtaggar baserat på vintypen:
+Nötkött, Ljust kött, Lamm, Vilt, Fågel, Fisk, Skaldjur, Pasta, Ost, Chark, Sushi, Asiatiskt, Vegetariskt, Aperitif, Dessert
+
+Om du inte kan läsa ett fält, sätt det till null. Gör ditt bästa för att identifiera vinet!`,
                     },
                     {
                         type: 'image_url',
@@ -46,10 +53,11 @@ Om du inte kan avgöra ett fält, sätt det till null.`,
                 ],
             },
         ],
-        max_tokens: 500,
+        max_tokens: 800,
     });
 
     const content = response.choices[0]?.message?.content || '{}';
+    console.log('OpenAI Vision response:', content);
 
     // Parse JSON from response (handle markdown code blocks)
     let jsonStr = content;
@@ -65,13 +73,18 @@ Om du inte kan avgöra ett fält, sätt det till null.`,
             producer: parsed.producer || null,
             vintage: parsed.vintage ? Number(parsed.vintage) : null,
             region: parsed.region || null,
+            grapeVariety: parsed.grapeVariety || null,
+            suggestedFoodPairings: Array.isArray(parsed.suggestedFoodPairings) ? parsed.suggestedFoodPairings : [],
         };
-    } catch {
+    } catch (e) {
+        console.error('Failed to parse OpenAI response:', e, content);
         return {
             name: 'Okänt vin',
             producer: null,
             vintage: null,
             region: null,
+            grapeVariety: null,
+            suggestedFoodPairings: [],
         };
     }
 }
