@@ -196,29 +196,21 @@ export default function Home() {
   const handleSignIn = async () => {
     if (!supabase) return;
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+    const email = prompt('Ange din e-postadress för att logga in:');
+    if (!email) return;
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+
     if (error) {
       console.error('Sign in error:', error);
-      // Fallback to magic link
-      const email = prompt('Ange din e-postadress:');
-      if (email) {
-        const { error: magicError } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        });
-        if (magicError) {
-          alert('Kunde inte skicka inloggningslänk');
-        } else {
-          alert('Kolla din e-post för inloggningslänk!');
-        }
-      }
+      alert('Kunde inte skicka inloggningslänk. Försök igen.');
+    } else {
+      alert('✉️ Kolla din e-post! Vi har skickat en inloggningslänk till ' + email);
     }
   };
 
