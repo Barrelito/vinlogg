@@ -73,21 +73,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Denna person är redan inbjuden' }, { status: 400 });
         }
 
-        // Check if the partner email exists as a user - if so, link them
-        const { data: partnerUserData } = await supabase
-            .from('auth.users')
-            .select('id')
-            .eq('email', partnerEmail)
-            .single();
-
-        // Create invite
+        // Create invite (always pending - will be linked when partner logs in)
         const { data: invite, error } = await supabase
             .from('partners')
             .insert({
                 user_id: user.id,
                 partner_email: partnerEmail,
-                partner_user_id: partnerUserData?.id || null,
-                status: partnerUserData ? 'accepted' : 'pending', // Auto-accept if user exists
+                partner_user_id: null,
+                status: 'pending',
             })
             .select()
             .single();
@@ -99,9 +92,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             invite,
-            message: partnerUserData
-                ? 'Partner tillagd! Ni delar nu vinkällare.'
-                : 'Inbjudan skickad! Partnern kopplas när de loggar in.'
+            message: 'Inbjudan skapad! Partnern kopplas när de loggar in med sin e-post.'
         });
     } catch (error) {
         console.error('Partners POST error:', error);
