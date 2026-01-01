@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Camera, Wine, Users, Search, ChevronRight, X, Sparkles } from 'lucide-react';
+import { Camera, Wine, Users, Search, ChevronRight, X, Sparkles, Smartphone } from 'lucide-react';
 
 interface OnboardingProps {
     onComplete: () => void;
@@ -13,6 +13,12 @@ const STEPS = [
         title: 'Välkommen till VinLogg!',
         description: 'Din personliga sommelier i fickan. Skanna vinflaskor, få AI-analys och bygg din egen vinkällare.',
         color: 'from-wine-red to-wine-red-light',
+    },
+    {
+        icon: Smartphone,
+        title: 'Installera som app',
+        description: '📱 iPhone: Tryck på dela-knappen ⬆️ och välj "Lägg till på hemskärmen"\n\n🤖 Android: Tryck på menyn ⋮ och välj "Installera app"',
+        color: 'from-slate-600 to-slate-800',
     },
     {
         icon: Camera,
@@ -103,7 +109,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                     {/* Content */}
                     <div className="p-6 text-center space-y-4">
                         <h2 className="text-xl font-bold text-white">{step.title}</h2>
-                        <p className="text-white/70 text-sm leading-relaxed">{step.description}</p>
+                        <p className="text-white/70 text-sm leading-relaxed whitespace-pre-line">{step.description}</p>
 
                         {/* Progress dots */}
                         <div className="flex justify-center gap-2 py-2">
@@ -111,10 +117,10 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                                 <div
                                     key={index}
                                     className={`w-2 h-2 rounded-full transition-all ${index === currentStep
-                                            ? 'bg-wine-red-light w-6'
-                                            : index < currentStep
-                                                ? 'bg-wine-red/50'
-                                                : 'bg-white/20'
+                                        ? 'bg-wine-red-light w-6'
+                                        : index < currentStep
+                                            ? 'bg-wine-red/50'
+                                            : 'bg-white/20'
                                         }`}
                                 />
                             ))}
