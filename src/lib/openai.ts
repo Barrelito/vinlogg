@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import type { VisionAnalysisResult } from './types';
 
 // Initialize OpenAI client lazily to avoid build-time errors
 let openai: OpenAI | null = null;
@@ -13,34 +12,54 @@ function getOpenAIClient(): OpenAI {
     return openai;
 }
 
-export async function analyzeWineImage(base64Image: string): Promise<VisionAnalysisResult> {
+// Complete wine analysis result from AI
+export interface WineAnalysisResult {
+    name: string;
+    producer: string | null;
+    vintage: number | null;
+    region: string | null;
+    grapes: string[];
+    food_pairing_tags: string[];
+    description: string | null;
+}
+
+// Standard food pairing tags (Systembolaget-style)
+const VALID_FOOD_TAGS = [
+    'Nöt', 'Fläsk', 'Fågel', 'Fisk', 'Skaldjur',
+    'Vegetariskt', 'Sällskapsdryck', 'Lamm', 'Vilt', 'Ljust kött'
+];
+
+export async function analyzeWineImage(base64Image: string): Promise<WineAnalysisResult> {
     const client = getOpenAIClient();
 
     const response = await client.chat.completions.create({
         model: 'gpt-4o',
         messages: [
             {
+                role: 'system',
+                content: `You are a sommelier API. Analyze wine labels and return structured JSON data. Always respond with ONLY valid JSON, no markdown or explanations.`
+            },
+            {
                 role: 'user',
                 content: [
                     {
                         type: 'text',
-                        text: `Du är en vinexpert. Analysera denna bild av en vinflaska och extrahera information från etiketten.
-
-Svara ENDAST med JSON i detta format, inget annat:
+                        text: `Analyze the wine label in this image. Return a JSON object with:
 
 {
-  "name": "Vinets fullständiga namn från etiketten",
-  "producer": "Producent eller vingårdens namn",
+  "name": "Full name of the wine",
+  "producer": "Producer/winery name",
   "vintage": 2020,
-  "region": "Region och/eller land",
-  "grapeVariety": "Druvsorter om synligt",
-  "suggestedFoodPairings": ["Nötkött", "Lamm"]
+  "region": "Region/Country",
+  "grapes": ["Shiraz", "Cabernet"],
+  "food_pairing_tags": ["Nöt", "Lamm"],
+  "description": "A short 1-sentence description of the wine's likely taste profile"
 }
 
-För suggestedFoodPairings, välj från dessa Systembolaget-standardtaggar baserat på vintypen:
-Nötkött, Ljust kött, Lamm, Vilt, Fågel, Fisk, Skaldjur, Pasta, Ost, Chark, Sushi, Asiatiskt, Vegetariskt, Aperitif, Dessert
+IMPORTANT for food_pairing_tags: Choose 1-3 tags STRICTLY from this list:
+${VALID_FOOD_TAGS.join(', ')}
 
-Om du inte kan läsa ett fält, sätt det till null. Gör ditt bästa för att identifiera vinet!`,
+If you cannot determine a field, set it to null (or empty array for arrays).`,
                     },
                     {
                         type: 'image_url',
@@ -53,11 +72,11 @@ Om du inte kan läsa ett fält, sätt det till null. Gör ditt bästa för att i
                 ],
             },
         ],
-        max_tokens: 800,
+        max_tokens: 1000,
     });
 
     const content = response.choices[0]?.message?.content || '{}';
-    console.log('OpenAI Vision response:', content);
+    console.log('OpenAI Wine Analysis response:', content);
 
     // Parse JSON from response (handle markdown code blocks)
     let jsonStr = content;
@@ -68,13 +87,23 @@ Om du inte kan läsa ett fält, sätt det till null. Gör ditt bästa för att i
 
     try {
         const parsed = JSON.parse(jsonStr.trim());
+
+        // Validate and filter food_pairing_tags to only valid options
+        let foodTags: string[] = [];
+        if (Array.isArray(parsed.food_pairing_tags)) {
+            foodTags = parsed.food_pairing_tags.filter((tag: string) =>
+                VALID_FOOD_TAGS.includes(tag)
+            );
+        }
+
         return {
             name: parsed.name || 'Okänt vin',
             producer: parsed.producer || null,
             vintage: parsed.vintage ? Number(parsed.vintage) : null,
             region: parsed.region || null,
-            grapeVariety: parsed.grapeVariety || null,
-            suggestedFoodPairings: Array.isArray(parsed.suggestedFoodPairings) ? parsed.suggestedFoodPairings : [],
+            grapes: Array.isArray(parsed.grapes) ? parsed.grapes : [],
+            food_pairing_tags: foodTags,
+            description: parsed.description || null,
         };
     } catch (e) {
         console.error('Failed to parse OpenAI response:', e, content);
@@ -83,24 +112,25 @@ Om du inte kan läsa ett fält, sätt det till null. Gör ditt bästa för att i
             producer: null,
             vintage: null,
             region: null,
-            grapeVariety: null,
-            suggestedFoodPairings: [],
+            grapes: [],
+            food_pairing_tags: [],
+            description: null,
         };
     }
 }
 
-// Food to Systembolaget tag mapping
+// Food to tag mapping for search feature
 const FOOD_TAG_MAPPINGS: Record<string, string[]> = {
-    'nötkött': ['Nötkött'],
-    'nötfärs': ['Nötkött'],
-    'biff': ['Nötkött'],
-    'entrecôte': ['Nötkött'],
-    'oxfilé': ['Nötkött'],
+    'nötkött': ['Nöt'],
+    'nötfärs': ['Nöt'],
+    'biff': ['Nöt'],
+    'entrecôte': ['Nöt'],
+    'oxfilé': ['Nöt'],
     'kalv': ['Ljust kött'],
     'kalvkött': ['Ljust kött'],
-    'gris': ['Ljust kött'],
-    'fläsk': ['Ljust kött'],
-    'fläskkött': ['Ljust kött'],
+    'gris': ['Fläsk'],
+    'fläsk': ['Fläsk'],
+    'fläskkött': ['Fläsk'],
     'kyckling': ['Fågel'],
     'anka': ['Fågel'],
     'kalkon': ['Fågel'],
@@ -117,16 +147,11 @@ const FOOD_TAG_MAPPINGS: Record<string, string[]> = {
     'räkor': ['Skaldjur'],
     'hummer': ['Skaldjur'],
     'musslor': ['Skaldjur'],
-    'pasta': ['Pasta'],
-    'ost': ['Ost'],
-    'chark': ['Chark'],
-    'sushi': ['Sushi'],
-    'asiatiskt': ['Asiatiskt'],
-    'thai': ['Asiatiskt'],
-    'kinesiskt': ['Asiatiskt'],
-    'aperitif': ['Aperitif'],
-    'dessert': ['Dessert'],
     'vegetariskt': ['Vegetariskt'],
+    'vegan': ['Vegetariskt'],
+    'grönsaker': ['Vegetariskt'],
+    'aperitif': ['Sällskapsdryck'],
+    'mingel': ['Sällskapsdryck'],
 };
 
 export async function mapFoodToTags(foodDescription: string): Promise<string[]> {
@@ -147,15 +172,13 @@ export async function mapFoodToTags(foodDescription: string): Promise<string[]> 
         messages: [
             {
                 role: 'system',
-                content: `Du är en expert på att matcha mat med Systembolagets matpairings-taggar.
+                content: `Du matchar mat med vinkategorier. Svara ENDAST med en JSON-array.
 
-Tillgängliga taggar: Nötkött, Ljust kött, Lamm, Vilt, Fågel, Fisk, Skaldjur, Pasta, Ost, Chark, Sushi, Asiatiskt, Vegetariskt, Aperitif, Dessert
-
-Svara ENDAST med en JSON-array av matchande taggar, t.ex: ["Fisk", "Skaldjur"]`,
+Tillgängliga taggar: ${VALID_FOOD_TAGS.join(', ')}`,
             },
             {
                 role: 'user',
-                content: `Vilka Systembolaget-taggar matchar bäst med: "${foodDescription}"?`,
+                content: `Vilka taggar matchar bäst med: "${foodDescription}"? Svara med JSON-array, t.ex: ["Fisk", "Skaldjur"]`,
             },
         ],
         max_tokens: 100,
@@ -170,7 +193,10 @@ Svara ENDAST med en JSON-array av matchande taggar, t.ex: ["Fisk", "Skaldjur"]`,
             jsonStr = jsonMatch[1];
         }
         const tags = JSON.parse(jsonStr.trim());
-        return Array.isArray(tags) ? tags : [];
+        // Filter to only valid tags
+        return Array.isArray(tags)
+            ? tags.filter((tag: string) => VALID_FOOD_TAGS.includes(tag))
+            : [];
     } catch {
         return [];
     }

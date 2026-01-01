@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzeWineImage } from '@/lib/openai';
-import { searchSystembolaget } from '@/lib/systembolaget';
+import { analyzeWineImage, WineAnalysisResult } from '@/lib/openai';
 import { createClient } from '@/lib/supabase/server';
 import type { Wine } from '@/lib/types';
 
@@ -15,60 +14,65 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Step 1: Analyze wine label with OpenAI Vision
-        const visionResult = await analyzeWineImage(image);
+        // Analyze wine label with OpenAI Vision (AI-only approach)
+        console.log('Analyzing wine image with OpenAI...');
+        const analysisResult = await analyzeWineImage(image);
+        console.log('Wine analysis result:', analysisResult);
 
-        // Step 2: Search Systembolaget for matching product
-        const sbProduct = await searchSystembolaget(
-            visionResult.name,
-            visionResult.producer
-        );
-
-        // If found on Systembolaget, check if we have it cached
+        // Try to save wine to database if user is authenticated
         let wine: Wine | null = null;
 
-        if (sbProduct) {
+        try {
             const supabase = await createClient();
+            const { data: { user } } = await supabase.auth.getUser();
 
-            // Check if wine exists in our database
-            const { data: existingWine } = await supabase
-                .from('wines')
-                .select('*')
-                .eq('article_number', sbProduct.articleNumber)
-                .single();
-
-            if (existingWine) {
-                wine = existingWine as Wine;
-            } else {
-                // Insert new wine into cache
-                const { data: newWine, error } = await supabase
+            if (user && analysisResult.name !== 'Okänt vin') {
+                // Check if wine already exists by name + producer
+                const { data: existingWine } = await supabase
                     .from('wines')
-                    .insert({
-                        name: sbProduct.name,
-                        producer: visionResult.producer,
-                        vintage: visionResult.vintage,
-                        region: visionResult.region,
-                        article_number: sbProduct.articleNumber,
-                        price: sbProduct.price,
-                        food_pairing_tags: sbProduct.foodPairingTags,
-                        url_to_systembolaget: sbProduct.url,
-                        image_url: sbProduct.imageUrl,
-                    })
-                    .select()
+                    .select('*')
+                    .eq('name', analysisResult.name)
+                    .eq('producer', analysisResult.producer || '')
                     .single();
 
-                if (!error && newWine) {
-                    wine = newWine as Wine;
+                if (existingWine) {
+                    wine = existingWine as Wine;
+                } else {
+                    // Insert new wine with AI-generated data
+                    const { data: newWine, error } = await supabase
+                        .from('wines')
+                        .insert({
+                            name: analysisResult.name,
+                            producer: analysisResult.producer,
+                            vintage: analysisResult.vintage,
+                            region: analysisResult.region,
+                            article_number: null, // No Systembolaget data
+                            price: null, // No Systembolaget data
+                            food_pairing_tags: analysisResult.food_pairing_tags,
+                            url_to_systembolaget: null,
+                            image_url: null,
+                        })
+                        .select()
+                        .single();
+
+                    if (!error && newWine) {
+                        wine = newWine as Wine;
+                        console.log('Saved new wine to database:', wine.id);
+                    }
                 }
             }
+        } catch (dbError) {
+            console.warn('Could not save wine to database:', dbError);
+            // Continue without database - user can still use the AI data
         }
 
         return NextResponse.json({
             success: true,
-            visionResult,
-            systembolagetProduct: sbProduct,
+            analysisResult,
             wine,
-            foundOnSystembolaget: !!sbProduct,
+            // If we have a wine saved in DB, it's not "manual entry"
+            // If wine is null but we have good AI data, show it pre-filled
+            foundInDatabase: !!wine,
         });
     } catch (error) {
         console.error('Scan wine error:', error);

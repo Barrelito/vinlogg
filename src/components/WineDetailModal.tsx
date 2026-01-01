@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2 } from 'lucide-react';
-import type { Wine as WineType, WineLog, VisionAnalysisResult } from '@/lib/types';
+import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
 
 interface WineDetailModalProps {
     wine?: WineType | null;
     log?: WineLog | null;
-    visionResult?: VisionAnalysisResult | null;
+    analysisResult?: WineAnalysisResult | null;
     imageBase64?: string;
     isManualEntry?: boolean;
     onClose: () => void;
@@ -29,7 +29,7 @@ interface WineDetailModalProps {
 export function WineDetailModal({
     wine,
     log,
-    visionResult,
+    analysisResult,
     imageBase64,
     isManualEntry = false,
     onClose,
@@ -40,11 +40,11 @@ export function WineDetailModal({
     const [notes, setNotes] = useState(log?.notes || '');
     const [isSaving, setIsSaving] = useState(false);
 
-    // Manual entry fields - pre-fill from visionResult or wine
-    const [manualName, setManualName] = useState(visionResult?.name || wine?.name || '');
-    const [manualProducer, setManualProducer] = useState(visionResult?.producer || wine?.producer || '');
-    const [manualVintage, setManualVintage] = useState((visionResult?.vintage || wine?.vintage)?.toString() || '');
-    const [manualRegion, setManualRegion] = useState(visionResult?.region || wine?.region || '');
+    // Manual entry fields - pre-fill from analysisResult or wine
+    const [manualName, setManualName] = useState(analysisResult?.name || wine?.name || '');
+    const [manualProducer, setManualProducer] = useState(analysisResult?.producer || wine?.producer || '');
+    const [manualVintage, setManualVintage] = useState((analysisResult?.vintage || wine?.vintage)?.toString() || '');
+    const [manualRegion, setManualRegion] = useState(analysisResult?.region || wine?.region || '');
 
     const handleSave = async () => {
         setIsSaving(true);

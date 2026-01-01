@@ -29,14 +29,19 @@ export interface WineLog {
   wine?: Wine; // Joined data
 }
 
-export interface VisionAnalysisResult {
+// AI analysis result from OpenAI
+export interface WineAnalysisResult {
   name: string;
   producer: string | null;
   vintage: number | null;
   region: string | null;
-  grapeVariety: string | null;
-  suggestedFoodPairings: string[];
+  grapes: string[];
+  food_pairing_tags: string[];
+  description: string | null;
 }
+
+// Legacy type for backwards compatibility
+export interface VisionAnalysisResult extends WineAnalysisResult { }
 
 export interface SystembolagetProduct {
   articleNumber: string;

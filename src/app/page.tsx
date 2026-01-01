@@ -7,22 +7,15 @@ import { WineList } from '@/components/WineList';
 import { FoodSearch } from '@/components/FoodSearch';
 import { WineDetailModal } from '@/components/WineDetailModal';
 import { createClient } from '@/lib/supabase/client';
-import type { Wine as WineType, WineLog } from '@/lib/types';
+import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 type ViewMode = 'cellar' | 'search';
 
 interface ScanResult {
-  visionResult: {
-    name: string;
-    producer: string | null;
-    vintage: number | null;
-    region: string | null;
-    grapeVariety: string | null;
-    suggestedFoodPairings: string[];
-  };
+  analysisResult: WineAnalysisResult;
   wine: WineType | null;
-  foundOnSystembolaget: boolean;
+  foundInDatabase: boolean;
   imageBase64: string;
 }
 
@@ -322,9 +315,9 @@ export default function Home() {
         <WineDetailModal
           wine={scanResult?.wine || selectedLog?.wine}
           log={selectedLog}
-          visionResult={scanResult?.visionResult}
+          analysisResult={scanResult?.analysisResult}
           imageBase64={scanResult?.imageBase64}
-          isManualEntry={scanResult !== null && !scanResult.foundOnSystembolaget}
+          isManualEntry={scanResult !== null && !scanResult.foundInDatabase}
           onClose={() => {
             setShowModal(false);
             setScanResult(null);
