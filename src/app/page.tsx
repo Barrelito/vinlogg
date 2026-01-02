@@ -445,6 +445,16 @@ export default function Home() {
             setSelectedLog(null);
           }}
           onSave={handleSaveLog}
+          onAddToCellar={async (wineId: string) => {
+            const response = await fetch('/api/cellar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ wine_id: wineId, quantity: 1 })
+            });
+            if (!response.ok) {
+              throw new Error('Failed to add to cellar');
+            }
+          }}
         />
       )}
 

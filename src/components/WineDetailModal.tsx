@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2, Thermometer, Clock, Sparkles, Users, Calendar } from 'lucide-react';
+import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2, Thermometer, Clock, Sparkles, Users, Calendar, Package, Check } from 'lucide-react';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
 
 interface WineDetailModalProps {
@@ -30,6 +30,7 @@ interface WineDetailModalProps {
             flavor_profile?: any;
         };
     }) => void;
+    onAddToCellar?: (wineId: string) => Promise<void>;
 }
 
 // Helper component for flavor bars
@@ -53,6 +54,7 @@ export function WineDetailModal({
     isManualEntry = false,
     onClose,
     onSave,
+    onAddToCellar,
 }: WineDetailModalProps) {
     const [rating, setRating] = useState(log?.rating || 0);
     const [location, setLocation] = useState(log?.location_name || '');
@@ -60,6 +62,8 @@ export function WineDetailModal({
     const [companions, setCompanions] = useState(log?.companions || '');
     const [occasion, setOccasion] = useState(log?.occasion || '');
     const [isSaving, setIsSaving] = useState(false);
+    const [isAddingToCellar, setIsAddingToCellar] = useState(false);
+    const [addedToCellar, setAddedToCellar] = useState(false);
 
     // Manual entry fields - pre-fill from analysisResult or wine
     const [manualName, setManualName] = useState(analysisResult?.name || wine?.name || '');
@@ -219,6 +223,45 @@ export function WineDetailModal({
                                             ))}
                                         </div>
                                     </div>
+                                )}
+
+                                {/* Add to cellar button */}
+                                {log && wine?.id && onAddToCellar && (
+                                    <button
+                                        onClick={async () => {
+                                            setIsAddingToCellar(true);
+                                            try {
+                                                await onAddToCellar(wine.id);
+                                                setAddedToCellar(true);
+                                            } catch (error) {
+                                                console.error('Failed to add to cellar:', error);
+                                            } finally {
+                                                setIsAddingToCellar(false);
+                                            }
+                                        }}
+                                        disabled={isAddingToCellar || addedToCellar}
+                                        className={`mt-3 w-full py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-all ${addedToCellar
+                                                ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                                : 'bg-wine-red/20 text-wine-red-light border border-wine-red/30 hover:bg-wine-red/30'
+                                            }`}
+                                    >
+                                        {isAddingToCellar ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <span>Lägger till...</span>
+                                            </>
+                                        ) : addedToCellar ? (
+                                            <>
+                                                <Check className="w-4 h-4" />
+                                                <span>Tillagd i hemmalager!</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Package className="w-4 h-4" />
+                                                <span>Lägg i hemmalager</span>
+                                            </>
+                                        )}
+                                    </button>
                                 )}
                             </div>
 
