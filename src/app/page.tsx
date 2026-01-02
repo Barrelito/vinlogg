@@ -10,6 +10,7 @@ import { PartnerSettings } from '@/components/PartnerSettings';
 import { Onboarding } from '@/components/Onboarding';
 import { AuthModal } from '@/components/AuthModal';
 import { WineDetailModal } from '@/components/WineDetailModal';
+import { PageSkeleton } from '@/components/Skeleton';
 import { createClient } from '@/lib/supabase/client';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -227,11 +228,7 @@ export default function Home() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="spinner w-12 h-12" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
