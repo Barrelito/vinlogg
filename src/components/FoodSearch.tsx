@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Utensils, Loader2, Wine } from 'lucide-react';
+import { Search, Utensils, Loader2, Wine, Star } from 'lucide-react';
 import type { WineLog } from '@/lib/types';
 
 interface FoodSearchProps {
@@ -12,6 +12,7 @@ export function FoodSearch({ onResults }: FoodSearchProps) {
     const [query, setQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [lastTags, setLastTags] = useState<string[]>([]);
+    const [favoritesOnly, setFavoritesOnly] = useState(true); // Default to favorites
 
     const handleSearch = async () => {
         if (!query.trim()) return;
@@ -22,7 +23,7 @@ export function FoodSearch({ onResults }: FoodSearchProps) {
             const response = await fetch('/api/search-food', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ food: query }),
+                body: JSON.stringify({ food: query, favoritesOnly }),
             });
 
             const result = await response.json();
@@ -61,6 +62,23 @@ export function FoodSearch({ onResults }: FoodSearchProps) {
 
     return (
         <div className="space-y-4">
+            {/* Favorites toggle */}
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-white/60">
+                    {favoritesOnly ? 'Söker bland dina favoriter' : 'Söker bland alla viner'}
+                </p>
+                <button
+                    onClick={() => setFavoritesOnly(!favoritesOnly)}
+                    className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-sm transition-all ${favoritesOnly
+                            ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50'
+                            : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                        }`}
+                >
+                    <Star className={`w-4 h-4 ${favoritesOnly ? 'fill-yellow-300' : ''}`} />
+                    <span>Bara favoriter</span>
+                </button>
+            </div>
+
             {/* Search input */}
             <div className="relative">
                 <Utensils className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -117,3 +135,4 @@ export function FoodSearch({ onResults }: FoodSearchProps) {
         </div>
     );
 }
+

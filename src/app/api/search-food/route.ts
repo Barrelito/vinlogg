@@ -5,7 +5,7 @@ import type { WineLog } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
     try {
-        const { food } = await request.json();
+        const { food, favoritesOnly } = await request.json();
 
         if (!food || typeof food !== 'string') {
             return NextResponse.json(
@@ -58,15 +58,21 @@ export async function POST(request: NextRequest) {
         const wineIds = matchingWines.map(w => w.id);
 
         // Get user's logs for matching wines
-        const { data: logs, error } = await supabase
+        let query = supabase
             .from('logs')
             .select(`
         *,
         wine:wines(*)
       `)
             .eq('user_id', user.id)
-            .in('wine_id', wineIds)
-            .order('date', { ascending: false });
+            .in('wine_id', wineIds);
+
+        // Filter to favorites only (4-5 stars) if requested
+        if (favoritesOnly) {
+            query = query.gte('rating', 4);
+        }
+
+        const { data: logs, error } = await query.order('rating', { ascending: false, nullsFirst: false });
 
         if (error) {
             console.error('Query error:', error);
