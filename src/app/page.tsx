@@ -6,6 +6,7 @@ import { ScanButton } from '@/components/ScanButton';
 import { WineList } from '@/components/WineList';
 import { FoodSearch } from '@/components/FoodSearch';
 import { StatsView } from '@/components/StatsView';
+import { BraVal } from '@/components/BraVal';
 import { PartnerSettings } from '@/components/PartnerSettings';
 import { Onboarding } from '@/components/Onboarding';
 import { AuthModal } from '@/components/AuthModal';
@@ -15,7 +16,7 @@ import { createClient } from '@/lib/supabase/client';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-type ViewMode = 'cellar' | 'search' | 'stats';
+type ViewMode = 'cellar' | 'braval' | 'search' | 'stats';
 
 interface ScanResult {
   analysisResult: WineAnalysisResult;
@@ -309,6 +310,17 @@ export default function Home() {
           </button>
 
           <button
+            onClick={() => setViewMode('braval')}
+            className={`flex-1 py-3 px-2 rounded-xl flex items-center justify-center gap-2 transition-all ${viewMode === 'braval'
+              ? 'bg-wine-red/30 text-wine-red-light'
+              : 'bg-white/5 text-white/60 hover:bg-white/10'
+              }`}
+          >
+            <Star className="w-5 h-5" />
+            <span className="hidden sm:inline">Bra val</span>
+          </button>
+
+          <button
             onClick={() => setViewMode('stats')}
             className={`flex-1 py-3 px-2 rounded-xl flex items-center justify-center gap-2 transition-all ${viewMode === 'stats'
               ? 'bg-wine-red/30 text-wine-red-light'
@@ -349,8 +361,8 @@ export default function Home() {
               <button
                 onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                 className={`px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all ${showFavoritesOnly
-                    ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50'
-                    : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                  ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50'
+                  : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
                   }`}
                 title="Visa bara favoriter (4-5 stjärnor)"
               >
@@ -372,6 +384,10 @@ export default function Home() {
               onSelect={handleSelectLog}
               onDelete={(logId) => setLogs(prev => prev.filter(l => l.id !== logId))}
             />
+          </section>
+        ) : viewMode === 'braval' ? (
+          <section>
+            <BraVal logs={logs} onSelectLog={handleSelectLog} />
           </section>
         ) : viewMode === 'stats' ? (
           <section>
