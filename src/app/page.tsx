@@ -8,6 +8,7 @@ import { FoodSearch } from '@/components/FoodSearch';
 import { StatsView } from '@/components/StatsView';
 import { PartnerSettings } from '@/components/PartnerSettings';
 import { Onboarding } from '@/components/Onboarding';
+import { AuthModal } from '@/components/AuthModal';
 import { WineDetailModal } from '@/components/WineDetailModal';
 import { createClient } from '@/lib/supabase/client';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
@@ -37,6 +38,7 @@ export default function Home() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [cellarSearch, setCellarSearch] = useState('');
   const [showPartnerSettings, setShowPartnerSettings] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Create Supabase client only after mounting
   const supabase = useMemo<SupabaseClient | null>(() => {
@@ -214,25 +216,8 @@ export default function Home() {
     }
   };
 
-  const handleSignIn = async () => {
-    if (!supabase) return;
-
-    const email = prompt('Ange din e-postadress för att logga in:');
-    if (!email) return;
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      console.error('Sign in error:', error);
-      alert('Kunde inte skicka inloggningslänk. Försök igen.');
-    } else {
-      alert('✉️ Kolla din e-post! Vi har skickat en inloggningslänk till ' + email);
-    }
+  const handleSignIn = () => {
+    setShowAuthModal(true);
   };
 
   const handleSignOut = async () => {
@@ -404,6 +389,13 @@ export default function Home() {
       <PartnerSettings
         isOpen={showPartnerSettings}
         onClose={() => setShowPartnerSettings(false)}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => fetchLogs()}
       />
 
       {/* First-time visitor onboarding */}
