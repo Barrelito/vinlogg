@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Wine, Search, User, LogIn, TrendingUp, Users } from 'lucide-react';
+import { Wine, Search, User, LogIn, TrendingUp, Users, Star } from 'lucide-react';
 import { ScanButton } from '@/components/ScanButton';
 import { WineList } from '@/components/WineList';
 import { FoodSearch } from '@/components/FoodSearch';
@@ -38,6 +38,7 @@ export default function Home() {
   const [selectedLog, setSelectedLog] = useState<WineLog | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [cellarSearch, setCellarSearch] = useState('');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showPartnerSettings, setShowPartnerSettings] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -99,18 +100,29 @@ export default function Home() {
     }
   };
 
-  // Filter logs based on cellar search
+  // Filter logs based on cellar search and favorites
   const filteredLogs = useMemo(() => {
-    if (!cellarSearch.trim()) return logs;
-    const search = cellarSearch.toLowerCase();
-    return logs.filter(log =>
-      log.wine?.name?.toLowerCase().includes(search) ||
-      log.companions?.toLowerCase().includes(search) ||
-      log.occasion?.toLowerCase().includes(search) ||
-      log.location_name?.toLowerCase().includes(search) ||
-      log.wine?.region?.toLowerCase().includes(search)
-    );
-  }, [logs, cellarSearch]);
+    let filtered = logs;
+
+    // Apply favorites filter first
+    if (showFavoritesOnly) {
+      filtered = filtered.filter(log => log.rating && log.rating >= 4);
+    }
+
+    // Apply search filter
+    if (cellarSearch.trim()) {
+      const search = cellarSearch.toLowerCase();
+      filtered = filtered.filter(log =>
+        log.wine?.name?.toLowerCase().includes(search) ||
+        log.companions?.toLowerCase().includes(search) ||
+        log.occasion?.toLowerCase().includes(search) ||
+        log.location_name?.toLowerCase().includes(search) ||
+        log.wine?.region?.toLowerCase().includes(search)
+      );
+    }
+
+    return filtered;
+  }, [logs, cellarSearch, showFavoritesOnly]);
 
   const handleScanComplete = (result: ScanResult) => {
     setScanResult(result);
@@ -322,17 +334,39 @@ export default function Home() {
         {/* Content */}
         {viewMode === 'cellar' ? (
           <section className="space-y-4">
-            {/* Cellar search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <input
-                type="text"
-                value={cellarSearch}
-                onChange={(e) => setCellarSearch(e.target.value)}
-                placeholder="Sök på vin, person, plats, tillfälle..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm"
-              />
+            {/* Cellar search and filters */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <input
+                  type="text"
+                  value={cellarSearch}
+                  onChange={(e) => setCellarSearch(e.target.value)}
+                  placeholder="Sök på vin, person, plats..."
+                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm"
+                />
+              </div>
+              <button
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                className={`px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all ${showFavoritesOnly
+                    ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50'
+                    : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                  }`}
+                title="Visa bara favoriter (4-5 stjärnor)"
+              >
+                <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-yellow-300' : ''}`} />
+                <span className="text-sm hidden sm:inline">Favoriter</span>
+              </button>
             </div>
+
+            {/* Results count when filtering */}
+            {(showFavoritesOnly || cellarSearch) && (
+              <p className="text-sm text-white/50">
+                {filteredLogs.length} vin{filteredLogs.length !== 1 ? 'er' : ''}
+                {showFavoritesOnly && ' med 4-5 stjärnor'}
+              </p>
+            )}
+
             <WineList
               logs={filteredLogs}
               onSelect={handleSelectLog}
