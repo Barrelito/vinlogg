@@ -171,3 +171,47 @@ BEGIN
             FOR DELETE USING (auth.uid() = user_id);
     END IF;
 END $$;
+
+-- =============================================
+-- PHASE 11: Home Cellar (Hemmalager)
+-- Tracks wines user currently has at home
+-- =============================================
+CREATE TABLE IF NOT EXISTS cellar (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    wine_id UUID REFERENCES wines(id) ON DELETE SET NULL,
+    quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity >= 0),
+    notes TEXT,
+    added_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_cellar_user_id ON cellar(user_id);
+CREATE INDEX IF NOT EXISTS idx_cellar_wine_id ON cellar(wine_id);
+
+-- RLS policies for cellar table
+ALTER TABLE cellar ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'cellar' AND policyname = 'Users can view their own cellar') THEN
+        CREATE POLICY "Users can view their own cellar" ON cellar
+            FOR SELECT USING (auth.uid() = user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'cellar' AND policyname = 'Users can insert into their cellar') THEN
+        CREATE POLICY "Users can insert into their cellar" ON cellar
+            FOR INSERT WITH CHECK (auth.uid() = user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'cellar' AND policyname = 'Users can update their cellar') THEN
+        CREATE POLICY "Users can update their cellar" ON cellar
+            FOR UPDATE USING (auth.uid() = user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'cellar' AND policyname = 'Users can delete from their cellar') THEN
+        CREATE POLICY "Users can delete from their cellar" ON cellar
+            FOR DELETE USING (auth.uid() = user_id);
+    END IF;
+END $$;

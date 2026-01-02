@@ -70,6 +70,19 @@ export interface SystembolagetProduct {
   imageUrl: string | null;
 }
 
+// Cellar item (wine in home inventory)
+export interface CellarItem {
+  id: string;
+  user_id: string;
+  wine_id: string | null;
+  quantity: number;
+  notes: string | null;
+  added_at: string;
+  updated_at: string;
+  wine?: Wine; // Joined data
+}
+
 // Database insert types (without auto-generated fields)
 export type WineInsert = Omit<Wine, 'id' | 'created_at' | 'updated_at'>;
 export type WineLogInsert = Omit<WineLog, 'id' | 'created_at' | 'updated_at' | 'wine'>;
+export type CellarInsert = Omit<CellarItem, 'id' | 'added_at' | 'updated_at' | 'wine'>;
