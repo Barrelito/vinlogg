@@ -231,6 +231,27 @@ export default function Home() {
     }
   };
 
+
+  const handleDeleteLog = async (logId: string) => {
+    if (!confirm('Vill du verkligen radera detta vin?')) return;
+
+    try {
+      const response = await fetch(`/api/logs?id=${logId}`, { method: 'DELETE' });
+      const data = await response.json();
+
+      if (data.success) {
+        setLogs(prev => prev.filter(l => l.id !== logId));
+        setShowModal(false);
+        setSelectedLog(null);
+      } else {
+        alert('Kunde inte radera vinet.');
+      }
+    } catch (error) {
+      console.error('Error deleting log:', error);
+      alert('Ett fel uppstod vid radering.');
+    }
+  };
+
   const handleSignIn = () => {
     setShowAuthModal(true);
   };
@@ -445,6 +466,7 @@ export default function Home() {
             setSelectedLog(null);
           }}
           onSave={handleSaveLog}
+          onDelete={selectedLog ? () => handleDeleteLog(selectedLog.id) : undefined}
           onAddToCellar={async (wineId: string) => {
             const response = await fetch('/api/cellar', {
               method: 'POST',

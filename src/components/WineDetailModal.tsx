@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2, Thermometer, Clock, Sparkles, Users, Calendar, Package, Check } from 'lucide-react';
+import { X, Star, MapPin, ExternalLink, Wine, Save, Loader2, Thermometer, Clock, Sparkles, Users, Calendar, Package, Check, Trash2 } from 'lucide-react';
 import type { Wine as WineType, WineLog, WineAnalysisResult } from '@/lib/types';
 
 interface WineDetailModalProps {
@@ -31,6 +31,7 @@ interface WineDetailModalProps {
         };
     }) => void;
     onAddToCellar?: (wineId: string) => Promise<void>;
+    onDelete?: () => void;
 }
 
 // Helper component for flavor bars
@@ -55,6 +56,7 @@ export function WineDetailModal({
     onClose,
     onSave,
     onAddToCellar,
+    onDelete,
 }: WineDetailModalProps) {
     const [rating, setRating] = useState(log?.rating || 0);
     const [location, setLocation] = useState(log?.location_name || '');
@@ -241,8 +243,8 @@ export function WineDetailModal({
                                         }}
                                         disabled={isAddingToCellar || addedToCellar}
                                         className={`mt-3 w-full py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-all ${addedToCellar
-                                                ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                                                : 'bg-wine-red/20 text-wine-red-light border border-wine-red/30 hover:bg-wine-red/30'
+                                            ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                            : 'bg-wine-red/20 text-wine-red-light border border-wine-red/30 hover:bg-wine-red/30'
                                             }`}
                                     >
                                         {isAddingToCellar ? (
@@ -261,6 +263,18 @@ export function WineDetailModal({
                                                 <span>Lägg i hemmalager</span>
                                             </>
                                         )}
+                                    </button>
+
+                                )}
+
+                                {/* Delete log button - only for existing logs */}
+                                {log && onDelete && (
+                                    <button
+                                        onClick={onDelete}
+                                        className="mt-3 w-full py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-medium bg-red-500/10 text-red-300 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Ta bort från vinkällare</span>
                                     </button>
                                 )}
                             </div>
@@ -416,6 +430,6 @@ export function WineDetailModal({
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
