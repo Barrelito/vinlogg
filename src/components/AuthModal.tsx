@@ -61,6 +61,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                         setError(error.message);
                     }
                 } else {
+                    // Link any pending partner invites for this user
+                    try {
+                        await fetch('/api/partners/link', { method: 'POST' });
+                    } catch {
+                        // Ignore errors - not critical
+                    }
                     onSuccess();
                     onClose();
                 }
@@ -106,8 +112,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                     <button
                         onClick={() => setMode('login')}
                         className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'login'
-                                ? 'bg-wine-red text-white'
-                                : 'bg-white/5 text-white/60 hover:bg-white/10'
+                            ? 'bg-wine-red text-white'
+                            : 'bg-white/5 text-white/60 hover:bg-white/10'
                             }`}
                     >
                         Logga in
@@ -115,8 +121,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                     <button
                         onClick={() => setMode('signup')}
                         className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'signup'
-                                ? 'bg-wine-red text-white'
-                                : 'bg-white/5 text-white/60 hover:bg-white/10'
+                            ? 'bg-wine-red text-white'
+                            : 'bg-white/5 text-white/60 hover:bg-white/10'
                             }`}
                     >
                         Skapa konto
