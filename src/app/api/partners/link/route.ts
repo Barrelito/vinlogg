@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+
 // POST: Link pending partner invites to the logged-in user
 export async function POST() {
     try {
@@ -11,8 +13,20 @@ export async function POST() {
             return NextResponse.json({ error: 'Ej inloggad' }, { status: 401 });
         }
 
+        // Use admin client to bypass RLS for linking
+        const supabaseAdmin = createAdminClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!,
+            {
+                auth: {
+                    autoRefreshToken: false,
+                    persistSession: false
+                }
+            }
+        );
+
         // Link any pending partner invites for this email
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('partners')
             .update({
                 partner_user_id: user.id,
